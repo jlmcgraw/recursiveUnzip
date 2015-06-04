@@ -11,14 +11,18 @@ IFS=$(printf '\n\t')  # Always put this in Bourne shell scripts
 #             rm_flag  = If set, remove zip file after unzip
 #
 
-# #Validate number of command line parameters
-# if [ "$#" -ne 2 ] ; then
-#   echo "Usage: $0 ZIP_FILE SHOULD_DELETE" >&2
-#   echo "Speciy" >&2
-#   exit 1
-# fi
-
-
+#Help function
+function HELP {
+  echo -e \\n"${BOLD}${SCRIPT}${NORM}"
+  echo -e \\n"Recursively unzip files and any archives inside them"\\n
+  echo -e "Basic usage:"\\n
+  echo -e \\t"${BOLD}$SCRIPT <switches> file1.zip file2.zip ... fileN.zip${NORM}"\\n
+  echo -e "Command line switches are optional. The following switches are recognized:"\\n
+  echo -e \\t"${REV}-d${NORM}  --Delete the input file(s) after processing"
+  echo -e \\t"${REV}-h${NORM}  --Displays this help message. No further functions are performed"\\n
+  echo -e "Example: ${BOLD}$SCRIPT -d test.zip${NORM}"\\n
+  exit 1
+}
 
 function runzip()
     {
@@ -108,32 +112,21 @@ function runzip()
 
 
 #Set Script Name variable
-SCRIPT=`basename ${BASH_SOURCE[0]}`
+SCRIPT=$(basename "${BASH_SOURCE[0]}")
 
 #Initialize variables to default values.
 SHOULD_DELETE=FALSE
 
 #Set fonts for Help.
-NORM=`tput sgr0`
-BOLD=`tput bold`
-REV=`tput smso`
+NORM=$(tput sgr0)
+BOLD=$(tput bold)
+REV=$(tput smso)
 
-#Help function
-function HELP {
-  echo -e \\n"${BOLD}${SCRIPT}${NORM}"\\n
-  echo -e \\n"Recursively unzip files and any archives inside them"\\n
-  echo -e "${REV}Basic usage:${NORM} ${BOLD}$SCRIPT <switches> file1.zip file2.zip ... fileN.zip${NORM}"\\n
-  echo "Command line switches are optional. The following switches are recognized."
-  echo -e \\t"${REV}-d${NORM}  --Delete the input file(s) after processing"
-  echo -e \\t"${REV}-h${NORM}  --Displays this help message. No further functions are performed"\\n
-  echo -e "Example: ${BOLD}$SCRIPT -d test.zip${NORM}"\\n
-  exit 1
-}
 
 #Check the number of arguments. If none are passed, print help and exit.
 NUMARGS=$#
 # echo -e \\n"Number of arguments: $NUMARGS"
-if [ $NUMARGS -eq 0 ]; then
+if [ "$NUMARGS" -eq 0 ]; then
   HELP
 fi
 
@@ -157,10 +150,6 @@ while getopts :dh FLAG; do
     \?) #unrecognized option - show help
       echo -e \\n"Option -${BOLD}$OPTARG${NORM} not allowed."
       HELP
-      #If you just want to display a simple error message instead of the full
-      #help, remove the 2 lines above and uncomment the 2 lines below.
-      #echo -e "Use ${BOLD}$SCRIPT -h${NORM} to see the help documentation."\\n
-      #exit 2
       ;;
   esac
 done
@@ -171,29 +160,13 @@ shift $((OPTIND-1))  #This tells getopts to move on to the next argument.
 
 
 ### Main loop to process files ###
-
-#This is where your main file processing will take place. This example is just
-#printing the files and extensions to the terminal. You should place any other
-#file processing tasks within the while-do loop.
-
 while [ $# -ne 0 ]; do
   FILE=$1
-  runzip "$1" $SHOULD_DELETE
-#   TEMPFILE=`basename $FILE`
-  #TEMPFILE="${FILE##*/}"  #This is another way to get the base file name.
-#   FILE_BASE=`echo "${TEMPFILE%.*}"`  #file without extension
-#   FILE_EXT="${TEMPFILE##*.}"  #file extension
-
-
-#   echo -e \\n"Input file is: $FILE"
-#   echo "File withouth extension is: $FILE_BASE"
-#   echo -e "File extension is: $FILE_EXT"\\n
+  #Call the recursive unzip function with supplied file and delete parameters
+  runzip "$FILE" $SHOULD_DELETE
   shift  #Move on to next input file.
 done
 
 ### End main loop ###
 
 exit 0
-
-#Call our function with the supplied command line parameter
-# runzip "$1" remove_zip
